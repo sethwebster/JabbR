@@ -16,6 +16,7 @@ namespace JabbR.ContentProviders
                     result.Content = String.Format(CultureInfo.InvariantCulture,
                                                       ContentFormat,
                                                       result.Title,
+                                                      this.GetType().Name,
                                                       result.Content);
                 }
                 return result;
@@ -30,6 +31,6 @@ namespace JabbR.ContentProviders
 
         protected virtual bool IsCollapsible { get { return true; } }
 
-        private const string ContentFormat = @"<h3 class=""collapsible_title"">{0} (click to show/hide)</h3><div class=""collapsible_box"">{1}</div>";
+        private const string ContentFormat = @"<h3 class=""collapsible_title "">{0} (click to show/hide)</h3><div class=""collapsible_box {1}"">{2}</div>";
     }
 }
