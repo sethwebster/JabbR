@@ -162,12 +162,13 @@ namespace JabbR
                 new { Name = "resetinvitecode", Description = "Type /resetinvitecode - To reset the current invite code. This will render the previous invite code invalid" }
             };
         }
+
         public IEnumerable<RoomViewModel> GetRooms()
         {
             string id = Caller.id;
             ChatUser user = _repository.VerifyUserId(id);
 
-            var rooms = _repository.GetAllowedRooms(user).Select(r => new RoomViewModel
+            var rooms = _repository.GetAllowedRooms(user).OrderByActivity().Select(r => new RoomViewModel
             {
                 Name = r.Name,
                 Count = r.Users.Count(u => u.Status != (int)UserStatus.Offline),

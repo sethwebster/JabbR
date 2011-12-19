@@ -25,6 +25,38 @@ namespace JabbR.Models
                    select r;
         }
 
+        public static IEnumerable<ChatRoom> OrderByActivity(this IEnumerable<ChatRoom> rooms)
+        {
+            var roomsRet = rooms.Select(r => new
+            {
+                Room = r,
+                TimeDistance = r.Messages.AggregateDistanceBetweenMessages(),
+                TimeSinceLast = r.Messages.Max(m => m.When)
+            }).OrderBy(n => n.TimeDistance)
+                .ThenByDescending(d => d.TimeSinceLast)
+                .Select(n => n.Room);
+            return roomsRet;
+
+        }
+
+        private static TimeSpan AggregateDistanceBetweenMessages(this IEnumerable<ChatMessage> input)
+        {
+            TimeSpan ret = default(TimeSpan);
+            using (var iterator = input.GetEnumerator())
+            {
+                ChatMessage prev = null;
+                while (iterator.MoveNext())
+                {
+                    if (prev != null)
+                    {
+                        ret += (prev.When - iterator.Current.When);
+                    }
+                    prev = iterator.Current;
+                }
+            }
+            return ret;
+        }
+
         public static ChatRoom VerifyUserRoom(this IJabbrRepository repository, ChatUser user, string roomName)
         {
             if (String.IsNullOrEmpty(roomName))
