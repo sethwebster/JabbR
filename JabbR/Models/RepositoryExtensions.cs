@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JabbR.Services;
+using System.Diagnostics;
 
 namespace JabbR.Models
 {
@@ -30,31 +31,39 @@ namespace JabbR.Models
             var roomsRet = rooms.Select(r => new
             {
                 Room = r,
-                TimeDistance = r.Messages.AggregateDistanceBetweenMessages(),
+                TimeDistance = r.Messages
+                    .OrderByDescending(m => m.When)
+                    .Take(10)
+                    .AggregateDistanceBetweenMessages(),
                 TimeSinceLast = r.Messages.Max(m => m.When)
-            }).OrderBy(n => n.TimeDistance)
-                .ThenByDescending(d => d.TimeSinceLast)
-                .Select(n => n.Room);
+            }).OrderBy(n => n.TimeDistance).Select(n => n.Room);
             return roomsRet;
 
         }
-
         private static TimeSpan AggregateDistanceBetweenMessages(this IEnumerable<ChatMessage> input)
         {
-            TimeSpan ret = default(TimeSpan);
-            using (var iterator = input.GetEnumerator())
+            if (input.Count() > 0)
             {
-                ChatMessage prev = null;
-                while (iterator.MoveNext())
+                TimeSpan ret = default(TimeSpan);
+                ChatMessage previous = null;
+                foreach(var current in input)
                 {
-                    if (prev != null)
+                    if (previous == null)
                     {
-                        ret += (prev.When - iterator.Current.When);
+                        ret = ret.Add(DateTime.Now - current.When);
                     }
-                    prev = iterator.Current;
+                    else
+                    {
+                        ret = ret.Add(previous.When - current.When);
+                    }
+                    previous = current;
                 }
+                return ret;
             }
-            return ret;
+            else
+            {
+                return TimeSpan.MaxValue;
+            }
         }
 
         public static ChatRoom VerifyUserRoom(this IJabbrRepository repository, ChatUser user, string roomName)
