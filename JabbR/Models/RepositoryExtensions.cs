@@ -31,7 +31,7 @@ namespace JabbR.Models
             var roomsRet = rooms.Select(r => new
             {
                 Room = r,
-                TimeDistance = r.Messages.ToArray()
+                TimeDistance = r.Messages
                     .OrderByDescending(m => m.When)
                     .Take(10)
                     .AggregateDistanceBetweenMessages(),
